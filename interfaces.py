@@ -21,44 +21,54 @@
 # THE SOFTWARE.
 #
 
-from pickle import dumps, loads
-
+import os
 
 class EventSource(object):
     pass
 
 class Record(object):
-    pass
+
+    def __str__(self):
+        ret = ""
+        for i in dir(self):
+            if i[0] != "_":
+                ret += "%s=%s" % (i, getattr(self, i))
+        return ret
+
+    def __repr__(self):
+        return "<Record %s>" % self.__str__()
 
 class Aggregator(object):
 
     def __init__(self, storage, output):
         self.db = storage
-        self.output_plugin = output
+        self.output = output
         self.records = {}
 
     def sync(self):
         for key, value in self.records.items():
-            self.ds.set_record(key, dumps(value))
+            self.ds.set_record(key, value)
 
     def get_record(self, record_id):
         if record_id not in self.records:
             try:
-                self.records[record_id] = self.db.get_record(record_id)
+                self.records[record_id] = self.db.load_record(record_id)
             except IndexError:
-                self.records[record_id] = self.format_record(record_id, Record())
+                record = Record()
+                self.format_record(record_id, record)
+                self.records[record_id] = record
 
         return self.records[record_id]
 
     def format_record(self, record_id, record):
         raise NotImplemented()
 
-    def add_connection(self, timestamp, proto, src, sport, dst, dport, bytes_in,
-            bytes_out):
+    def add_connection(self, timestamp, proto, src, sport, dst, dport,
+            bytes_in, bytes_out):
         raise NotImplemented()
 
     def make_report(self, path):
-        for key, value in self.db.get_all():
+        for key, value in self.db.load_all_records():
             if key not in self.records:
                 self.records[key] = value
         self.output.write_report(path, self.records)
@@ -68,24 +78,28 @@ class Aggregator(object):
 
 class DataStorage(object):
 
-    def set_record(record_id, data):
-        pass
+    def set_record(self, record_id, data):
+        raise NotImplemented()
 
-    def get_record(record_id):
-        pass
+    def get_record(self, record_id):
+        raise NotImplemented()
 
-    def get_all():
-        pass
+    def get_all(self):
+        raise NotImplemented()
 
-    def flush():
-        pass
+    def flush(self):
+        raise NotImplemented()
 
 
 class Output(object):
 
     def __init__(self, prefix):
-        pass
+        self.prefix = prefix
+        if not os.path.exists(prefix):
+            os.mkdir(prefix)
+        if not os.path.isdir(prefix):
+            raise ValueError('%s is not a directory!' % prefix)
 
-    def write_report(path, records):
+    def write_report(self, path, records):
         pass
 

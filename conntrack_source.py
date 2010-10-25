@@ -19,41 +19,77 @@
 # THE SOFTWARE.
 #
 
-from time import time
+"""
+ConntrackSource
+"""
+
+from time import time, sleep
 
 from Conntrack import EventListener, NFCT_T_DESTROY, NFCT_O_PLAIN
 
 from interfaces import EventSource
 
 class ConntrackSource(EventSource):
+    """
+    ConntrackSource
+    """
 
     def __init__(self, aggregator):
+        """
+        ConntrackSource
+
+        @param aggregator: Aggregator to use.
+        """
+
+        super(ConntrackSource, self).__init__()
+
         self.aggregator = aggregator
-        e = EventListener(self.event_callback, NFCT_T_DESTROY, NFCT_O_PLAIN)
-        e.start()
+        self.listener = EventListener(self.event_callback,
+                NFCT_T_DESTROY, NFCT_O_PLAIN)
+        self.listener.start()
+        self._running = False
+        self.events = []
+
+    def run(self):
         self._running = True
         self.loop()
 
     def loop(self):
+        """
+        Main loop.
+        """
+
         while self._running or self.events:
+
             events = self.events
             self.events = []
 
             for event in events:
-                l = events.split()
-                proto = l[1]
-                l = [ r.split('=') for r in l if '=' in r ]
-                p_in, p_out = dict(l[:6]), dict(l[6:])
+                event = event.split()
+                proto = event[1]
+                event = [ i.split('=') for i in event if '=' in i ]
+                c_in, c_out = dict(event[:6]), dict(event[6:])
 
                 self.aggregator.add_connection(int(time()), proto,
-                        p_in['src'], p_in['sport'],
-                        p_in['dst'], p_in['dport'],
-                        p_in['bytes'], p_out['bytes'])
+                        c_in['src'], c_in['sport'],
+                        c_in['dst'], c_in['dport'],
+                        c_in['bytes'], c_out['bytes'])
+
+            if self._running and not self.events:
+                sleep(1.0)
 
     def stop(self):
-        self.e.stop()
+        """
+        Stop main loop.
+        """
+
+        self.listener.stop()
         self._running = False
 
-    def event_callback(self, e):
-        self.events.append(e)
+    def event_callback(self, event):
+        """
+        Callback for Netfilter netlink interface.
+        """
+
+        self.events.append(event)
 
