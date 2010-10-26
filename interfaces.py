@@ -71,7 +71,7 @@ class Aggregator(object):
         for key, value in self.db.load_all_records():
             if key not in self.records:
                 self.records[key] = value
-        self.output.write_report(path, self.records)
+        self.output.write_report(self.records, path=path)
         self.records = {}
         self.db.flush()
 
@@ -100,6 +100,6 @@ class Output(object):
         if not os.path.isdir(prefix):
             raise ValueError('%s is not a directory!' % prefix)
 
-    def write_report(self, path, records):
+    def write_report(self, records, **kwargs):
         pass
 

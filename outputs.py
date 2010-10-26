@@ -30,7 +30,8 @@ from interfaces import Output
 
 class PlainTextOutput(Output):
 
-    def write_report(self, path, records):
+    def write_report(self, records, **kwargs):
+        path = kwargs.get('path', 'report')
         with open(os.path.join(self.prefix, path), 'w') as f_out:
             f_out.write("%s\n" % "\t".join([
                     field for field in dir(records.items()[0][1])
