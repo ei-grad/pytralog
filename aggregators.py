@@ -22,7 +22,7 @@
 from interfaces import Aggregator
 
 
-class DaySrcAggregator(Aggregator):
+class SrcAggregator(Aggregator):
 
     def format_record(self, record_id, record):
         record.src = record_id
@@ -32,6 +32,32 @@ class DaySrcAggregator(Aggregator):
     def add_connection(self, timestamp, proto, src, sport, dst, dport,
             bytes_in, bytes_out):
         record = self.get_record(src)
+        record.bytes_in += int(bytes_in)
+        record.bytes_out += int(bytes_out)
+
+class DstAggregator(Aggregator):
+
+    def format_record(self, record_id, record):
+        record.dst = record_id
+        record.bytes_in = 0
+        record.bytes_out = 0
+
+    def add_connection(self, timestamp, proto, src, sport, dst, dport,
+            bytes_in, bytes_out):
+        record = self.get_record(dst)
+        record.bytes_in += int(bytes_in)
+        record.bytes_out += int(bytes_out)
+
+class SrcDstAggregator(Aggregator):
+
+    def format_record(self, record_id, record):
+        record.src, record.dst = record_id.split('-')
+        record.bytes_in = 0
+        record.bytes_out = 0
+
+    def add_connection(self, timestamp, proto, src, sport, dst, dport,
+            bytes_in, bytes_out):
+        record = self.get_record("%s-%s" %(src, dst))
         record.bytes_in += int(bytes_in)
         record.bytes_out += int(bytes_out)
 
