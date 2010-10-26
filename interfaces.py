@@ -67,11 +67,11 @@ class Aggregator(object):
             bytes_in, bytes_out):
         raise NotImplemented()
 
-    def make_report(self, path):
+    def make_report(self, **kwargs):
         for key, value in self.db.load_all_records():
             if key not in self.records:
                 self.records[key] = value
-        self.output.write_report(self.records, path=path)
+        self.output.write_report(self.records, **kwargs)
         self.records = {}
         self.db.flush()
 

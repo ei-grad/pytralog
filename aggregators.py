@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2010 Andrew Grigorev <andrew@ei-grad.ru>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy

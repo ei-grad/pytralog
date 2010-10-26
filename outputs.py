@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2010 Andrew Grigorev <andrew@ei-grad.ru>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,6 +34,12 @@ class PlainTextOutput(Output):
     def write_report(self, records, **kwargs):
         path = kwargs.get('path', 'report')
         with open(os.path.join(self.prefix, path), 'w') as f_out:
+            if 'title' in kwargs:
+                f_out.write("%s\n" % kwargs['title'].upper())
+                if 'subtitle' in kwargs:
+                    f_out.write("%s\n\n" % kwargs['subtitle'])
+                else:
+                    f_out.write("\n")
             f_out.write("%s\n" % "\t".join([
                     field for field in dir(records.items()[0][1])
                         if field[0] != '_' ]))
