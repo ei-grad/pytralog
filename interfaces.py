@@ -28,11 +28,8 @@ class EventSource(object):
 class Record(object):
 
     def __str__(self):
-        ret = ""
-        for i in dir(self):
-            if i[0] != "_":
-                ret += "%s=%s" % (i, getattr(self, i))
-        return ret
+        return " ".join([ "%s=%s" % (i, getattr(self, i)) for i in dir(self)
+                if i[0] != "_" ])
 
     def __repr__(self):
         return "<Record %s>" % self.__str__()
