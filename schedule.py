@@ -68,7 +68,12 @@ class Monthly(Job):
     title = _("Monthly report at %Y-%m-%d %H:%M")
 
     def next_sched(self):
-        n = datetime.now()
-        return datetime(*(n + timedelta(days=31))[:2]+(1,))
+        y, m = datetime.now().timetuple()[:2]
+        if m == 12:
+            y += 1
+            m = 1
+        else:
+            m += 1
+        return datetime(y, m, 1)
 
 
