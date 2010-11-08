@@ -20,7 +20,43 @@
 A collection of pytralog aggregators.
 """
 
-from interfaces import Aggregator
+
+class Aggregator(object):
+
+    def __init__(self, storage, output):
+        self.db = storage
+        self.output = output
+        self.records = {}
+
+    def sync(self):
+        for key, value in self.records.items():
+            self.ds.set_record(key, value)
+
+    def get_record(self, record_id):
+        if record_id not in self.records:
+            try:
+                self.records[record_id] = self.db.load_record(record_id)
+            except IndexError:
+                record = Record()
+                self.format_record(record_id, record)
+                self.records[record_id] = record
+
+        return self.records[record_id]
+
+    def format_record(self, record_id, record):
+        raise NotImplemented()
+
+    def add_connection(self, timestamp, proto, src, sport, dst, dport,
+            bytes_in, bytes_out):
+        raise NotImplemented()
+
+    def make_report(self, **kwargs):
+        for key, value in self.db.load_all_records():
+            if key not in self.records:
+                self.records[key] = value
+        self.output.write_report(self.records, **kwargs)
+        self.records = {}
+        self.db.flush()
 
 
 class SrcAggregator(Aggregator):

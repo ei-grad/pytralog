@@ -24,7 +24,6 @@ from time import time, sleep
 
 from Conntrack import EventListener, NFCT_T_DESTROY, NFCT_O_PLAIN
 
-from interfaces import EventSource
 
 class ConntrackSource(EventSource):
     """

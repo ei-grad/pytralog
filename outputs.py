@@ -22,25 +22,60 @@ Outputs
 
 import os
 
-from interfaces import Output
+
+class Output(object):
+
+    def __init__(self, prefix):
+        self.prefix = prefix
+        if not os.path.exists(prefix):
+            os.mkdir(prefix)
+        if not os.path.isdir(prefix):
+            raise ValueError('%s is not a directory!' % prefix)
+
+    def write_report(self, records, **kwargs):
+        pass
 
 
 class PlainTextOutput(Output):
 
+    TITLE_FORMAT = "%s\n"
+    SUBTITLE_FORMAT = "%s\n\n"
+    BEFORE_DATA = "\n"
+    RECORD_REPR = lambda l: "\t".join(l)
+    RECORD_FORMAT = "%s\n"
+    AFTER_DATA = "\n"
+
     def write_report(self, records, **kwargs):
-        path = kwargs.get('path', 'report')
-        with open(os.path.join(self.prefix, path), 'w') as f_out:
+
+        if not records:
+            raise ValueError("Empty record set!")
+
+        fname = kwargs.get('filename', 'report.txt')
+
+        with open(os.path.join(self.prefix, fname), 'w') as f_out:
             if 'title' in kwargs:
-                f_out.write("%s\n" % kwargs['title'].upper())
+                f_out.write(self.TITLE_FORMAT.format(kwargs['title'].upper()))
                 if 'subtitle' in kwargs:
-                    f_out.write("%s\n\n" % kwargs['subtitle'])
-                else:
-                    f_out.write("\n")
-            f_out.write("%s\n" % "\t".join([
-                    field for field in dir(records.items()[0][1])
-                        if field[0] != '_' ]))
+                    f_out.write(
+                            self.SUBTITLE_FORMAT.format(kwargs['subtitle'])
+                        )
+            f_out.write(self.BEFORE_DATA)
+            fields = list(records.values())[0]._get_fields()
+            f_out.write(self.RECORD_FORMAT.format(self.RECORD_REPR(fields)))
             for key, rec in records.items():
-                values = [ str(getattr(rec, field)) for field in dir(rec)
-                        if field[0] != '_' ]
-                f_out.write('\t'.join(values) + '\n')
+                f_out.write(self.RECORD_FORMAT.format(
+                        self.RECORD_REPR(rec._get_values()))
+                    )
+            f_out.write(self.AFTER_DATA)
+
+class SimpleHTMLTableOutput(PlainTextOutput):
+    TITLE_FORMAT = """<xhtml>
+<head></head><body>
+<h1>%s</h1>
+"""
+    SUBTITLE_FORMAT = "<h2>%s</h2>\n"
+    BEFORE_DATA = "<table>"
+    RECORD_REPR = lambda l: "<tr><td>" + "</td><td>".join(l) + "</td></tr>"
+    RECORD_FORMAT = "%s\n"
+    AFTER_DATA = "</table></body></xhtml>\n"
 
