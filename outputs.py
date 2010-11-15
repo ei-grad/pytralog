@@ -33,7 +33,7 @@ class Output(object):
         if not os.path.isdir(prefix):
             raise ValueError('%s is not a directory!' % prefix)
 
-    def write_report(self, records, **kwargs):
+    def make_report(self, records, context):
         pass
 
 
@@ -46,16 +46,17 @@ class PlainTextOutput(Output):
     RECORD_FORMAT = "{0}\n"
     AFTER_DATA = "\n"
 
-    def write_report(self, records, **kwargs):
+    def make_report(self, records, context):
+        super(PlainTextOutput, self).make_report(self, records, **kwargs)
 
-        fname = kwargs.get('filename', 'report.txt')
+        fname = context.get('filename', 'report.txt')
 
         with open(os.path.join(self.prefix, fname), 'w') as f_out:
-            if 'title' in kwargs:
-                f_out.write(self.TITLE_FORMAT.format(kwargs['title'].upper()))
-                if 'subtitle' in kwargs:
+            if 'title' in context:
+                f_out.write(self.TITLE_FORMAT.format(context['title'].upper()))
+                if 'subtitle' in context:
                     f_out.write(
-                            self.SUBTITLE_FORMAT.format(kwargs['subtitle'])
+                            self.SUBTITLE_FORMAT.format(context['subtitle'])
                         )
             f_out.write(self.BEFORE_DATA)
             if records:

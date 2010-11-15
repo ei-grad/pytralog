@@ -28,17 +28,24 @@ from time import time, mktime
 
 class Job(object):
 
-    def __init__(self, aggregator, offset=timedelta(), **kwargs):
+    def __init__(self, aggregator, output, offset=timedelta(),
+            context=None):
         dt = mktime((self.next_sched() + offset).timetuple()) - time()
-        self.timer = Timer(dt, self.make_report)
-        self.kwargs = kwargs
+        self.timer = Timer(dt, self.job)
+        if context is None:
+            context = {}
+        self.context = context
         self.aggregator = aggregator
+        self.output = output
         self.timer.start()
 
-    def make_report(self):
-        if 'title' not in self.kwargs:
-            self.kwargs['title'] = datetime.now().strftime(self.title)
-        self.aggregator.make_report(**self.kwargs)
+    def job(self):
+        # preparing report parameters
+        if 'title' not in self.context:
+            self.context['title'] = self.title
+
+        records = self.aggregator.pop()
+        self.output.make_report(records, self.context)
 
     def next_sched(self):
         raise NotImplemented()

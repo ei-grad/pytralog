@@ -39,9 +39,8 @@ class Record(object):
 
 class Aggregator(object):
 
-    def __init__(self, storage, output):
+    def __init__(self, storage):
         self.db = storage
-        self.output = output
         self.records = {}
 
     def sync(self):
@@ -66,19 +65,19 @@ class Aggregator(object):
             bytes_in, bytes_out):
         raise NotImplemented()
 
-    def make_report(self, **kwargs):
-        for key, value in self.db.load_all_records():
-            if key not in self.records:
-                self.records[key] = value
-        self.output.write_report(self.records, **kwargs)
+    def pop(self, **kwargs):
+        records = self.records
         self.records = {}
-        self.db.flush()
+        for key, value in self.db.pop():
+            if key not in self.records:
+                records[key] = value
+        return records
 
 
 class HubAggregator(Aggregator):
 
-    def __init__(self, storage, output):
-        super(HubAggregator, self).__init__(self, storage, output)
+    def __init__(self, storage):
+        super(HubAggregator, self).__init__(self, storage)
         self.aggregators = []
 
     def add_aggregator(self, aggregator):
