@@ -21,9 +21,10 @@ ConntrackSource
 """
 
 from time import time, sleep
-
 from Conntrack import EventListener, NFCT_T_DESTROY, NFCT_O_PLAIN
 
+class EventSource(object):
+    pass
 
 class ConntrackSource(EventSource):
     """
@@ -61,8 +62,9 @@ class ConntrackSource(EventSource):
             self.events = []
 
             for event in events:
-                event = event.split()
+                event = str(event, 'utf-8').split()
                 proto = event[1]
+                print(event)
                 event = [ i.split('=') for i in event if '=' in i ]
                 c_in, c_out = dict(event[:6]), dict(event[6:])
 

@@ -20,21 +20,6 @@ import os
 from pickle import load, dump
 
 
-class Record(object):
-
-    def __str__(self):
-        return " ".join([ "%s=%s" % (i, getattr(self, i)) for i in dir(self)
-                if i[0] != "_" ])
-
-    def __repr__(self):
-        return "<Record %s>" % self.__str__()
-
-    def _get_fields(self):
-        return [ field for field in dir(self) if field[0] != '_' ]
-
-    def _get_values(self):
-        return [ str(getattr(rec, field)) for field in self._get_fields() ]
-
 class DataStorage(object):
 
     def set_record(self, record_id, data):

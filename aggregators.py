@@ -21,6 +21,22 @@ A collection of pytralog aggregators.
 """
 
 
+class Record(object):
+
+    def __str__(self):
+        return " ".join([ "%s=%s" % (i, getattr(self, i)) for i in dir(self)
+                if i[0] != "_" ])
+
+    def __repr__(self):
+        return "<Record %s>" % self.__str__()
+
+    def _get_fields(self):
+        return [ field for field in dir(self) if field[0] != '_' ]
+
+    def _get_values(self):
+        return [ str(getattr(self, field)) for field in self._get_fields() ]
+
+
 class Aggregator(object):
 
     def __init__(self, storage, output):
@@ -57,6 +73,20 @@ class Aggregator(object):
         self.output.write_report(self.records, **kwargs)
         self.records = {}
         self.db.flush()
+
+
+class HubAggregator(Aggregator):
+
+    def __init__(self, storage, output):
+        super(HubAggregator, self).__init__(self, storage, output)
+        self.aggregators = []
+
+    def add_aggregator(self, aggregator):
+        self.aggregators.append(aggregator)
+
+    def add_connection(self, *args):
+        for aggr in self.aggregators:
+            aggr.add_connection(*args)
 
 
 class SrcAggregator(Aggregator):

@@ -21,6 +21,7 @@ Outputs
 """
 
 import os
+import logging
 
 
 class Output(object):
@@ -38,17 +39,14 @@ class Output(object):
 
 class PlainTextOutput(Output):
 
-    TITLE_FORMAT = "%s\n"
-    SUBTITLE_FORMAT = "%s\n\n"
+    TITLE_FORMAT = "{0}\n"
+    SUBTITLE_FORMAT = "{0}\n\n"
     BEFORE_DATA = "\n"
-    RECORD_REPR = lambda l: "\t".join(l)
-    RECORD_FORMAT = "%s\n"
+    RECORD_REPR = lambda self, l: "\t".join(l)
+    RECORD_FORMAT = "{0}\n"
     AFTER_DATA = "\n"
 
     def write_report(self, records, **kwargs):
-
-        if not records:
-            raise ValueError("Empty record set!")
 
         fname = kwargs.get('filename', 'report.txt')
 
@@ -60,22 +58,25 @@ class PlainTextOutput(Output):
                             self.SUBTITLE_FORMAT.format(kwargs['subtitle'])
                         )
             f_out.write(self.BEFORE_DATA)
-            fields = list(records.values())[0]._get_fields()
-            f_out.write(self.RECORD_FORMAT.format(self.RECORD_REPR(fields)))
-            for key, rec in records.items():
-                f_out.write(self.RECORD_FORMAT.format(
-                        self.RECORD_REPR(rec._get_values()))
-                    )
+            if records:
+                fields = list(records.values())[0]._get_fields()
+                f_out.write(self.RECORD_FORMAT.format(self.RECORD_REPR(fields)))
+                for key, rec in records.items():
+                    f_out.write(self.RECORD_FORMAT.format(
+                            self.RECORD_REPR(rec._get_values()))
+                        )
+            else:
+                logging.warning("Empty record set!")
             f_out.write(self.AFTER_DATA)
 
 class SimpleHTMLTableOutput(PlainTextOutput):
     TITLE_FORMAT = """<xhtml>
 <head></head><body>
-<h1>%s</h1>
+<h1>{0}</h1>
 """
-    SUBTITLE_FORMAT = "<h2>%s</h2>\n"
+    SUBTITLE_FORMAT = "<h2>{0}</h2>\n"
     BEFORE_DATA = "<table>"
-    RECORD_REPR = lambda l: "<tr><td>" + "</td><td>".join(l) + "</td></tr>"
-    RECORD_FORMAT = "%s\n"
+    RECORD_REPR = lambda self, l: "<tr><td>" + "</td><td>".join(l) + "</td></tr>"
+    RECORD_FORMAT = "{0}\n"
     AFTER_DATA = "</table></body></xhtml>\n"
 

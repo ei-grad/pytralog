@@ -30,10 +30,15 @@ class Job(object):
 
     def __init__(self, aggregator, offset=timedelta(), **kwargs):
         dt = mktime((self.next_sched() + offset).timetuple()) - time()
-        if 'title' not in kwargs:
-            kwargs['title'] = self.title
-        self.timer = Timer(dt, aggregator.make_report, kwargs=kwargs)
+        self.timer = Timer(dt, self.make_report)
+        self.kwargs = kwargs
+        self.aggregator = aggregator
         self.timer.start()
+
+    def make_report(self):
+        if 'title' not in self.kwargs:
+            self.kwargs['title'] = datetime.now().strftime(self.title)
+        self.aggregator.make_report(**self.kwargs)
 
     def next_sched(self):
         raise NotImplemented()
