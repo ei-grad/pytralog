@@ -1,0 +1,11 @@
+= pytralog - python traffic logger =
+
+Tool to provide highly customized reports about network traffic.
+
+Written in python3.
+
+Dependences:
+
+python-conntrack - http://github.com/ei-grad/python-conntrack
+Jinja2 - http://jinja.pocoo.org
+
