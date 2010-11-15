@@ -18,6 +18,7 @@
 
 import os
 from pickle import load, dump
+from threading import Lock
 
 
 class DataStorage(object):
@@ -39,8 +40,9 @@ class FilesystemStorage(object):
 
     def __init__(self, prefix):
         self.prefix = prefix
+        self.lock = Lock()
 
-    def _open_record(self, record_id, mode=None):
+    def _open_record(self, record_id, mode):
         if os.path.sep in record_id:
             raise ValueError("Can't use "+os.path.sep+" in record_id.")
         path = os.path.realpath(os.path.join(self.prefix, record_id))
@@ -48,26 +50,24 @@ class FilesystemStorage(object):
             raise ValueError('Permission denied')
         if not os.path.isfile(path):
             raise IndexError('No record with id %s!' % record_id)
-        if mode is None:
-            return open(path)
         return open(path, mode)
 
     def save_record(self, record_id, data):
-        with self._open_record(record_id, 'w') as record_file:
-            dump(data, record_file)
+        with self.lock:
+            with self._open_record(record_id, 'w') as record_file:
+                dump(data, record_file)
 
     def load_record(self, record_id):
-        return load(self._open_record(record_id, 'r'))
+        with self.lock:
+            return load(self._open_record(record_id, 'r'))
 
-    def load_all_records(self):
-        ret = {}
-        for i in os.listdir(self.prefix):
-            path = os.join(self.prefix, i)
-            if os.path.isfile(path):
-                ret[i] = load(open(path))
-        return ret
-
-    def flush(self):
-        for i in os.listdir(self.prefix):
-            os.remove(os.join(self.prefix, i))
+    def pop(self):
+        with self.lock:
+            ret = {}
+            for i in os.listdir(self.prefix):
+                path = os.join(self.prefix, i)
+                if os.path.isfile(path):
+                    ret[i] = load(open(path))
+                os.remove(os.join(self.prefix, i))
+            return ret
 
