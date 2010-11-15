@@ -64,7 +64,6 @@ class ConntrackSource(EventSource):
             for event in events:
                 event = str(event, 'utf-8').split()
                 proto = event[1]
-                print(event)
                 event = [ i.split('=') for i in event if '=' in i ]
                 c_in, c_out = dict(event[:6]), dict(event[6:])
 
